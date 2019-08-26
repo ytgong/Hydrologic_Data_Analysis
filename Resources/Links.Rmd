@@ -1,0 +1,75 @@
+---
+title: "Helpful Links and Resources"
+author: "Hydrologic Data Analysis | Kateri Salk"
+date: "Fall 2019"
+output: pdf_document
+geometry: margin=2.54cm
+editor_options: 
+  chunk_output_type: console
+---
+
+## R and RStudio
+[R for Data Science (R4DS)](https://r4ds.had.co.nz/)
+
+## R Markdown
+[R Markdown guide](https://kbroman.org/knitr_knutshell/pages/Rmarkdown.html)
+
+[R Markdown cheat sheet](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf)
+
+[Pimp my RMD](https://holtzy.github.io/Pimp-my-rmd/)
+
+[R Markdown templates](https://bookdown.org/yihui/rmarkdown/document-templates.html)
+
+[R Markdown chapter in R4DS](https://r4ds.had.co.nz/r-markdown.html)
+
+[Tables](https://community.rstudio.com/t/inserting-table-in-r-markdown/7260/2)
+
+[Internal referencing](https://datascienceplus.com/r-markdown-how-to-number-and-reference-tables/)
+
+[Internal referencing](https://stackoverflow.com/questions/38861041/knitr-rmarkdown-latex-how-to-cross-reference-figures-and-tables)
+
+[Linking Zotero and Rmd](https://ikashnitsky.github.io/2019/zotero/)
+
+
+## Github tools
+[Keeping a fork up to date with the master](https://gist.github.com/CristinaSolana/1885435)
+
+## Visualization
+[Datavis decision tree](https://www.data-to-viz.com/)
+
+[R graph gallery](http://r-graph-gallery.com/)
+
+[R shiny gallery](https://shiny.rstudio.com/gallery/)
+
+[Yan Holtz datavis slides](https://www.yan-holtz.com/teaching)
+
+[Fundamentals of datavis](https://serialmentor.com/dataviz/color-basics.html)
+
+[Rain Cloud plots](https://github.com/RainCloudPlots/RainCloudPlots)
+
+[R Color Brewer](http://colorbrewer2.org)
+
+[R Viridis](https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html)
+
+## R Packages
+[dataRetrieval (USGS hydrologic data)](https://cran.r-project.org/web/packages/dataRetrieval/vignettes/dataRetrieval.html)
+
+[WaterML](https://cran.r-project.org/web/packages/WaterML/index.html)
+
+[Water Survey of Canada](https://github.com/ropensci/tidyhydat)
+
+[Watershed delineation](http://matthewrvross.com/active.html)
+
+[Project Eddie](https://serc.carleton.edu/eddie/index.html)
+
+[EcoHydRology](https://cran.r-project.org/web/packages/EcoHydRology/index.html)
+
+## Statistics
+[Autocorrelation and Time Series](https://newonlinecourses.science.psu.edu/stat462/node/188/)
+
+[GAMs course](https://noamross.github.io/gams-in-r-course/)
+
+## Fun stats sites
+[Guess the Correlation](http://guessthecorrelation.com/)
+
+[Spurious Correlations](https://www.tylervigen.com/spurious-correlations)
