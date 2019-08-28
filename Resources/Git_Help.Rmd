@@ -96,7 +96,7 @@ Your instructors will regularly update the course repository. However, this will
 
 Type the following commands into the Terminal window in RStudio (bottom left)
 
-`git remote add upstream https://github.com/KateriSalk/Environmental_Data_Analytics`
+`git remote add upstream https://github.com/KateriSalk/Hydrologic_Data_Analysis`
 
 `git pull upstream`
 
