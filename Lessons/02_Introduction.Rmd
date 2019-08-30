@@ -18,6 +18,12 @@ What makes an effective data visualization? What are the essential components/ch
 
 Come up with a consensus list among your group members. 
 
+  obvious conclusion
+  data labels
+  context
+  
+  interactive
+
 Compare your list to other groups' lists. 
 
 ## Exploring web resources for visualization
@@ -25,7 +31,10 @@ Compare your list to other groups' lists.
 1. Navigate to https://www.data-to-viz.com/.
 2. Think of a dataset that you or someone in your field might want to visualize. What types of variables does this dataset contain? What information might you want to convey with a visualization?
 
-<add notes here>
+European carbon market transaction data + carbon emission data
+
+how carbon market impacts carbon emission
+
 
 3. Scroll to the "Explore" section of the website. Follow the flow chart to find a type of graph that would suit your data. Click for more information and a link to the R Graph Gallery. If there are multiple options for graphing your data, how might you choose between them?
 
@@ -108,6 +117,11 @@ names(EnoDischarge)[4:5] <- c("Discharge", "Approval.Code")
 attr(EnoDischarge, "variableInfo")
   # note: imperial, not metric
 attr(EnoDischarge, "siteInfo")
+cubed = ((EnoDischarge$Discharge^(1/3))*0.3)^3
+EnoDischarge = cbind(EnoDischarge, cubed)
+rmean = rollmean(EnoDischarge$Discharge,30)
+EnoDischarge = cbind(EnoDischarge, rmean)
+
   
 # Build a ggplot
 EnoPlot <- 
