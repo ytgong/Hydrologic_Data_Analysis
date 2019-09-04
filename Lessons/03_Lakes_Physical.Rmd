@@ -87,6 +87,8 @@ unique(Pauldata$depth)
 unique(Peterdata$depth)
 unique(Tuesdaydata$depth)
 # Why didn't we use the "summary" function here?
+# because otherwise it will return the min, max, mean, sd, etc. of "depth" which don't really make sense
+
 ```
 
 ### Exploratory data visualization
@@ -96,10 +98,12 @@ Let's make a plot of temperatures by depth. There are a lot of points, so adding
 TempvsDepth <- 
   ggplot(Pauldata, aes(x = depth, y = temperature_C)) + 
   geom_point(alpha = 0.5) +
-  labs(y = expression("Temperature "(degree*C)), x = "Depth (m)")
+  labs(y = expression("Temperature "(degree*C)), x = "Depth (m)") # a good way to make labels for axises
 print(TempvsDepth)
 ```
 
+May to August data.
+Weird points: November
 How do temperatures at the surface compare to temperatures at the mid-depths and at the bottom?
 <add notes here>
 
@@ -139,7 +143,7 @@ print(Tempplot.mixed)
 Now let's take out the 2 m and 9 m points and add in the 4 m and 6 m points. How do these compare to the surface and bottom temperatures?
 <add notes here>
 
-Here are are highlighting depths considered the **metalimnion** or **thermocline**.
+Here are are highlighting depths considered the **metalimnion** or **thermocline**. rapid temp decrease
 ```{r}
 Tempplot.thermocline <- 
   ggplot(Pauldata.surface, aes(x = sampledate, y = temperature_C)) +
@@ -190,6 +194,7 @@ TempprofileMay2016 <-
   scale_x_continuous(position = "top", limits = c(0, 30)) +
   labs(x = expression("Temperature "(degree*C)), y = "Depth (m)")
 print(TempprofileMay2016)
+# dotted line: 4 degrees. max density. almost as cold as a lake can get.
 
 TempprofileJune2016 <- 
   TempprofileMay2016 +
@@ -246,8 +251,13 @@ Let's put your prediction to the test. In 1993, the lake was sampled in November
 ```
 
 Why does mixing occur in the spring and fall? What are the mechanisms that make this possible?
-<add notes here>
+wind + small density gradient => lake mixes, temperature passes down depth
 
 ## Closing Discussion
 
 What are the main concepts you learned about the physical properties of lakes today? What was the evidence for these concepts in the dataset?
+1. 4 degree
+2. epilimnion: surface layer
+   hypolimnion: bottom, stagnnant
+   metalimnion / thermocline: temp decreases rapidly
+3. wind makes lake mix!
