@@ -1,9 +1,11 @@
 ---
-title: "Assignment 2: Physical Properties of Lakes"
+title: 'Assignment 2: Physical Properties of Lakes'
 author: "Yutao Gong"
-output: pdf_document
 geometry: margin=2.54cm
-editor_options: 
+output:
+  html_document:
+    df_print: paged
+editor_options:
   chunk_output_type: console
 ---
 
@@ -35,7 +37,7 @@ library(gridExtra)
 library(cowplot)
 library(lubridate)
 
-NTLdata <- read.csv("./Data/Raw/NTL-LTER_Lake_ChemistryPhysics_Raw.csv")
+NTLdata <- read.csv("../Data/Raw/NTL-LTER_Lake_ChemistryPhysics_Raw.csv")
 NTLdata$sampledate <- as.Date(NTLdata$sampledate, "%m/%d/%y")
 theme_set(theme_bw())
 
@@ -48,7 +50,8 @@ theme_set(theme_bw())
 5. Choose either Peter or Tuesday Lake. Create a new data frame that wrangles the full data frame so that it only includes that lake during two different years (one year from the early part of the dataset and one year from the late part of the dataset).
 
 ```{r}
-Peterdata <- filter(NTLdata, lakename == "Peter Lake" & (year4 == "1985" | year4 == "2015"))
+Peterdata.og <- filter(NTLdata, lakename == "Peter Lake")
+Peterdata <- filter(Peterdata.og, year4 == "1985" | year4 == "2015")
 ```
 
 6. Create three graphs: (1) temperature profiles for the early year, (2) temperature profiles for the late year, and (3) a `plot_grid` of the two graphs together. Choose `geom_point` and color your points by date. 
@@ -81,7 +84,8 @@ plot_grid(Tempprofiles_Peter1985, Tempprofiles_Peter2015)
 
 7. Interpret the stratification patterns in your graphs in light of seasonal trends. In addition, do you see differences between the two years?
 
-> 
+> From the graphs we can see that from May to August the temperature goes up and then down, because during this time period, the season goes from spring to summer and to early fall, and atmoshpheric temperature increases from spring to summer and then decreases from summer to fall. As of stratification patterns, surface/epilimnion temperature seems to change the most along with seasonal change, while hypolimnion temperature remains relatively stable. Combining these two, we can notice that temperature changes more rapidly within thermocline during warmer time.
+Comparing the two years, we can see that the average temperature is higher in 2015, especially in the warmest months, which is probably due to global warming.
 
 ### Multiple lakes, single date 
 
@@ -107,15 +111,41 @@ print(Tempprofiles_samedate)
 
 10. What is the depth range of the epilimnion in each lake? The thermocline? The hypolimnion?
 
->
+> For epilimnion, the approximate depth range of Tuesday Lake is 0.0~1.3m, of Peter Lake is 0.0~1.5m, of Paul Lake is 0.0~2m.
+The approximate depth range of the thermocline for Tuesday Lake is 1.3m~6m, for Peter Lake is 1.5m~8m, for Paul Lake is 2m~8.3m.
+The approximate depth range of the hypolimnion for Tuesday Lake is below 6m (data ends at around 12m), for Peter Lake is below 8m (data ends at around 12m), while for Paul Lake data ends at around 8.3m so it's hard to estimate the depth range of hypolimnion.
 
 ## Trends in surface temperatures over time. 
 11. Run the same analyses we ran in class to determine if surface lake temperatures for a given month have increased over time ("Long-term change in temperature" section of day 4 lesson in its entirety), this time for either Peter or Tuesday Lake. 
 
 ```{r}
+Petersurface <- Peterdata.og %>%
+  mutate(Month = month(sampledate)) %>%
+  filter(depth == 0 & Month < 9 & Month > 4) # Noticed that there is one row of data from February of 2009 but does not have valid temperature data, so still only including from May to August
 
+Petersurface.May <- filter(Petersurface, Month == 5)
+Petersurface.June <- filter(Petersurface, Month == 6)
+Petersurface.July <- filter(Petersurface, Month == 7)
+Petersurface.August <- filter(Petersurface, Month == 8)
+
+Temptrend.May <- lm(data = Petersurface.May, temperature_C ~ year4)
+summary(Temptrend.May)
+
+Temptrend.June <- lm(data = Petersurface.June, temperature_C ~ year4)
+summary(Temptrend.June)
+
+Temptrend.July <- lm(data = Petersurface.July, temperature_C ~ year4)
+summary(Temptrend.July)
+
+Temptrend.August <- lm(data = Petersurface.August, temperature_C ~ year4)
+summary(Temptrend.August)
+
+ggplot(Petersurface, aes(x = sampledate, y = temperature_C)) +
+  geom_point() +
+  facet_grid(rows = vars(Month)) +
+  geom_smooth(se = FALSE, method = lm)
 ```
 
 12. How do your results compare to those we found in class for Paul Lake? Do similar trends exist for both lakes?
 
-> 
+> The results are pretty similar to those of Paul Lake. The trend is that for both lakes the surface temperature has a slight increasing trend across the years. Among the months, July has the most significant increasing trend.
