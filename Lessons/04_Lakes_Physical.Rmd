@@ -17,6 +17,9 @@ editor_options:
 ## Opening Discussion
 We analyzed temperature profiles and seasonal changes on Wednesday. What were some key takeaway points about thermal stratification and mixing?
 
+stratification: not mixing; forming layers
+
+
 ## Session Set Up
 ```{r, message = FALSE}
 getwd()
@@ -96,16 +99,16 @@ print(Physicalprofiles2016)
 
 How do temperature profiles vary over the course of a season? What are the mechanisms for this pattern?
 
-> 
+> It goes up and then down as the season goes from spring to summer and to fall. Mechanism: atmoshpheric temperature increases from spring to summer and then decreases from summer to fall.
 
 How do irradiance profiles vary over the course of a season? What are the mechanisms for this pattern?
 
-> 
+> It goes down and then up as the season goes from spring to summer and to fall. Summer solstice -> direct sunlight. 
 
 How do dissolved oxygen profiles vary over the course of a season? What are the mechanisms for this pattern?
 
-> 
-
+> Decreasing throughout the season. Cool water can hold more oxygen. Photosynthesis increases oxygen.Deep coral maximum (in between epilimnion and metalimnion) 
+In hypolimnion: phytoplankton consumes oxygen.
 
 ## Data Analysis
 
@@ -122,9 +125,47 @@ Steps:
 5. Create a ggplot of surface temps by date and facet by month. Add `geom_smooth(se = FALSE, method = lm)` to the plot to display the regression line.
 
 ```{r}
+Paulsurface <- Pauldata %>%
+  mutate(Month = month(sampledate)) %>%
+  filter(depth == 0 & Month < 9)
 
+Paulsurface.May <- filter(Paulsurface, Month == 5)
+Paulsurface.June <- filter(Paulsurface, Month == 6)
+Paulsurface.July <- filter(Paulsurface, Month == 7)
+Paulsurface.August <- filter(Paulsurface, Month == 8)
 
+Temptrend.May <- lm(data = Paulsurface.May, temperature_C ~ year4)
+summary(Temptrend.May)
 
+Temptrend.June <- lm(data = Paulsurface.June, temperature_C ~ year4)
+summary(Temptrend.June)
+
+Temptrend.July <- lm(data = Paulsurface.July, temperature_C ~ year4)
+summary(Temptrend.July)
+
+Temptrend.August <- lm(data = Paulsurface.August, temperature_C ~ year4)
+summary(Temptrend.August)
+
+ggplot(Paulsurface, aes(x = sampledate, y = temperature_C)) +
+  geom_point() +
+  facet_grid(rows = vars(Month)) +
+  geom_smooth(se = FALSE, method = lm)
+Pauldata.1 = mutate(Pauldata, Month = month(Pauldata$sampledate))
+Pauldata.1 %>% filter(between(Month, 5, 8))
+Pauldata.5m = filter(Pauldata.1, Month == 5)
+Pauldata.6m = filter(Pauldata.1, Month == 6)
+Pauldata.7m = filter(Pauldata.1, Month == 7)
+Pauldata.8m = filter(Pauldata.1, Month == 8)
+MayTest = lm(temperature_C ~ year4, data = Pauldata.5m)
+summary(MayTest)
+# -0.001615
+
+JuneTest = lm(temperature_C ~ year4, data = Pauldata.6m)
+summary(JuneTest)
+# -0.02816
+
+JulyTest = lm(temperature_C ~ year4, data = Pauldata.7m)
+summary(JulyTest)
 ```
 
 Summarize your results below. How would you explain your findings and the importance of these findings to a non-specialist audience while still employing the data and statistical results?

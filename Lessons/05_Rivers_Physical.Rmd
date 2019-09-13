@@ -16,6 +16,8 @@ editor_options:
 ## Opening Discussion
 What are the physical properties of streams and rivers? What variables might be of interest?
 
+
+
 ## Session Set Up
 
 ```{r, message = FALSE}
@@ -74,7 +76,7 @@ NehalemSummary <- whatNWISdata(siteNumbers = "14299800")
 
 What data are available from the sites? Pay particular attention to the parameter codes and statistic codes.
 
->
+> 
 
 What is the period of record for mean daily discharge at each of these sites?
 
@@ -200,15 +202,15 @@ print(CombinedPlot)
 
 How does the magnitude of discharge compare for these rivers?
 
->
+> They tend to vary a lot, from 3000 to 15000.
 
 Which of these rivers have a seasonal cycle of discharge? How might you explain the presence and timing of seasonal cycles based on climatic conditions?
 
->
+> Bitterroot, Sauk and Nehalem have a clear seasonal cycle. When weather warms up more ice and snow melts and thus there will be more water going into rivers. Also precipitation will vary from season to season => Sauk's smaller peaks.
 
 Hypothetical question: If you wanted to create a ggplot using facets instead of `plot_grid`, how would you go about wrangling your dataset differently? 
 
->
+> use rbind to add a column for site
 
 ## Defining "typical" discharge pattern
 Let's take the Bitterroot River, which displays a clear seasonal cycle. Let's define the median discharge on a given day of year and overlay this onto the range experienced. We will take a longer period of record this time.
@@ -240,5 +242,22 @@ print(BitterrootPatternPlot)
 
 Challenge: Edit the code above so that rather than plotting the minimum and maximum discharge, you are plotting the 95 % confidence interval of the discharge on a given date. Hint: look up the formula for confidence interval.
 
+```{r}
+BitterrootDischarge.Pattern <- BitterrootDischarge.Historical %>%
+  group_by(DOY) %>%
+  summarise(Median.Discharge = median(Discharge), 
+            Max.Discharge = max(Discharge),
+            Min.Discharge = min(Discharge))
+BitterrootPatternPlot <- 
+  ggplot(BitterrootDischarge.Pattern, aes(x = DOY)) +
+  geom_line(aes(y = Median.Discharge)) +
+  geom_line(aes(y = Max.Discharge), color = "gray") +
+  geom_line(aes(y = Min.Discharge), color = "gray") +  
+  labs(x = "Day of Year", y = expression("Discharge (ft"^3*"/s)")) 
+print(BitterrootPatternPlot)
+```
+
 ## Closing Discussion
 What are your impressions of seasonal and interannual discharge for our example rivers? How might you go about interpreting discharge data for any given river?
+
+
