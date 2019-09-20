@@ -49,11 +49,11 @@ Why might it be helpful to have multiple ways to measure bacteria?
 
 Where and when do you think the biggest risks from harmful bacteria are?
 
->
+> 
 
 Measuring microbiogial indicators is more expensive and time consuming than some other water quality metrics. Where and when would you measure these?
 
->
+> high risk area => a bit of sampling bias
 
 ## How have improvements in sewage treatment affected water quality?
 
@@ -156,7 +156,6 @@ Microbes.plot <- plot_grid(Total.coli.plot +
                            Total.cell.plot + 
                              labs(title = "Total cell count", y = ""),
                            ncol = 1)
-
 print(Microbes.plot)
 ```
 
@@ -166,7 +165,7 @@ How would you use all of this data to talk about changes in microbial water qual
 
 Do you think water quality has improved between 1970 and 2000? Why or why not?
 
->
+> yes
 
 The city of Lawrence, MA is downstream of Lowell and gets its drinking water from the Merrimack River. Use the federal drinking water standard for Total Coliforms (https://www.epa.gov/ground-water-and-drinking-water/national-primary-drinking-water-regulations#Microorganisms) to comment on whether or not this water necessarily needs to be treated for bacteria.
 
@@ -201,7 +200,43 @@ print(coli.seasons)
 
 When are total coliform concentrations highest? Why might this be?
 
->
+> 
+
+```{r seasons_analysis}
+coli.monthly.summaries.45 <- microb.dat %>%
+  mutate(month = month(Date)) %>%
+  group_by(month) %>%
+  select(month, F.coli.45) %>%
+  summarize_all(funs(Median = median(., na.rm = T),
+                 quant25 = quantile(., .25, na.rm = T),
+                 quant75 = quantile(., .75, na.rm = T)))
+
+coli.seasons.45 <- ggplot(coli.monthly.summaries.45, aes(x = month)) +
+  geom_ribbon(aes(ymin = quant25, ymax = quant75), alpha = 0.3) +
+  geom_line(aes(y = Median)) +
+  scale_x_continuous(name = "Month",
+                     breaks = c(1,2,3,4,5,6,7,8,9,10,11,12)) +
+    labs(y = "F coliforms 。45 (cfu / 100 ml)") 
+
+print(coli.seasons.45)
+
+coli.monthly.summaries.7 <- microb.dat %>%
+  mutate(month = month(Date)) %>%
+  group_by(month) %>%
+  select(month, F.coli.7) %>%
+  summarize_all(funs(Median = median(., na.rm = T),
+                 quant25 = quantile(., .25, na.rm = T),
+                 quant75 = quantile(., .75, na.rm = T)))
+
+coli.seasons.7 <- ggplot(coli.monthly.summaries.7, aes(x = month)) +
+  geom_ribbon(aes(ymin = quant25, ymax = quant75), alpha = 0.3) +
+  geom_line(aes(y = Median)) +
+  scale_x_continuous(name = "Month",
+                     breaks = c(1,2,3,4,5,6,7,8,9,10,11,12)) +
+    labs(y = "F coliforms .7 (cfu / 100 ml)") 
+
+print(coli.seasons.7)
+```
 
 Does this pattern also exist for the other microbial indicators?
 
