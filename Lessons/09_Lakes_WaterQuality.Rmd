@@ -14,7 +14,10 @@ editor_options:
 3. Analyze spatial and temporal patterns of water quality across the northeast U.S.
 
 ## Opening Discussion
-What are the major water quality impairments experienced in lakes?  
+What are the major water quality impairments experienced in lakes?
+eutrophication (nutrients) -> dissolved Oxygen -> microbes
+invasive species
+contaminants
 
 ## Session Set Up
 
@@ -45,16 +48,17 @@ https://cont-limno.github.io/LAGOSNE/articles/lagosne_structure.html
 
 ```{r}
 # Load LAGOSNE data into R session
-LAGOSdata <- lagosne_load()
-names(LAGOSdata)
+#LAGOSdata <- lagosne_load()
+#names(LAGOSdata)
 
 # If the package installation and data download has not worked, use this code: 
-# load(file = "./Data/Raw/LAGOSdata.rda")
+load(file = "./Data/Raw/LAGOSdata.rda")
 
 # Exploring the data types that are available
 LAGOSlocus <- LAGOSdata$locus
 LAGOSstate <- LAGOSdata$state
-LAGOSnutrient <- LAGOSdata$epi_nutr
+LAGOSnutrient <- LAGOSdata$epi_nutr #epi means Epilimnion - where data is easiest to collect
+# on average more than 1 observation per lake
 
 # Tell R to treat lakeid as a factor, not a numeric value
 LAGOSlocus$lagoslakeid <- as.factor(LAGOSlocus$lagoslakeid)
@@ -71,6 +75,7 @@ Add notes about each line of code as we go along. What does each function do?
 ```{r}
 # Join data frames
 LAGOSlocations <- left_join(LAGOSlocus, LAGOSstate, by = "state_zoneid")
+# by: column in common
 
 # Order by number of lakes
 LAGOSlocations <- 
@@ -116,7 +121,7 @@ LAGOStrophic <-
   mutate(sampleyear = year(sampledate), 
          samplemonth = month(sampledate), 
          season = as.factor(quarter(sampledate, fiscal_start = 12))) %>%
-  drop_na(chla:secchi)
+  drop_na(chla:secchi) # move an entire row when there's a NA
 
 levels(LAGOStrophic$season) <- c("Winter", "Spring", "Summer", "Fall")
 ```
@@ -130,6 +135,7 @@ ggplot(LAGOStrophic,
   labs(x = "Month", y = expression(Chlorophyll ~ a ~ (mu*g / L)), color = "Year") +
   scale_color_viridis_c(option = "magma")
 print(chlbymonth)
+# higher in summer: more light, higher temperature
 
 secchibymonth <-
 ggplot(LAGOStrophic, 
@@ -137,7 +143,7 @@ ggplot(LAGOStrophic,
   geom_jitter(alpha = 0.2) +
   labs(x = "Month", y = "Secchi depth (m)", color = "Year") +
   scale_color_viridis_c(option = "magma")
-print(secchibymonth)
+print(secchibymonth) #more concentrated than chloro
 
 tpbymonth <- 
 ggplot(LAGOStrophic, 
