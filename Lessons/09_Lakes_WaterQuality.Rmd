@@ -55,7 +55,7 @@ https://cont-limno.github.io/LAGOSNE/articles/lagosne_structure.html
 load(file = "./Data/Raw/LAGOSdata.rda")
 
 # Exploring the data types that are available
-LAGOSlocus <- LAGOSdata$locus
+LAGOSlocus <- LAGOSdata$locus # location
 LAGOSstate <- LAGOSdata$state
 LAGOSnutrient <- LAGOSdata$epi_nutr #epi means Epilimnion - where data is easiest to collect
 # on average more than 1 observation per lake
@@ -245,7 +245,12 @@ What insights do we gain from the different visualizations?
 
 > Bar: 
 
-> Jitter:
+> Jitter: different states/lakes have different baselines so tricky to say what level is "good" - but if overall trend is going to eutriphication then it's probably bad.
 
 ## Closing Discussion
 What factors might you expect to influence TSI scores in a given area? What are some variables in the LAGOSNE database that could help you test your hypothesis?
+```{r}
+write.csv(LAGOStrophic, "./Data/LAGOStrophic.csv", row.names = FALSE)
+```
+
+
