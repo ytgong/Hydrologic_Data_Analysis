@@ -79,13 +79,13 @@ Examine potential correlations among your predictor variables. If your predictor
 LAGOSquality <- 
   left_join(LAGOSnutrient, LAGOSlocations, by = "lagoslakeid") %>%
   select(lagoslakeid, sampledate, tn, tp, secchi, 
-         nh4, no2no3, chla, state, state_name) %>%
+         nh4, toc, chla, state, state_name) %>%
   mutate(sampleyear = year(sampledate), 
          samplemonth = month(sampledate), 
          season = as.factor(quarter(sampledate, fiscal_start = 12))) %>%
 #LAGOSquality <-LAGOSquality[!is.na(LAGOSquality$tn) | !is.na(LAGOSquality$tp),]
   drop_na(tn:chla) # move an entire row when there's a NA
-levels(LAGOStrophic$season) <- c("Winter", "Spring", "Summer", "Fall")
+levels(LAGOSquality$season) <- c("Winter", "Spring", "Summer", "Fall")
 M <- cor(LAGOSquality[ , c(3:8) ] )
 corrplot(M, upper = "ellipse")
 ```
@@ -97,7 +97,10 @@ What patterns do you see?
 2. Create two linear regression models (hint: function `lm`) to predict TN and TP using your five predictor variables. 
 
 ```{r}
-
+model.tn = lm(tn~state+nh4+toc+chla+secchi, data = LAGOSquality)
+summary(model.tn)
+model.tp = lm(tp~state+nh4+toc+chla+secchi, data = LAGOSquality)
+summary(model.tp)
 ```
 
 How much variance in TN and TP is accounted for by your full model?
@@ -107,7 +110,8 @@ How much variance in TN and TP is accounted for by your full model?
 3. Calculate variance inflation factors (VIF) for each of the variables in both models (hint: `vif` function in the car package). VIF values exceeding 5-10 indicates an issue with multicollinearity for that variable. Note: you should evaluate VIF values separately for each model.
 
 ```{r}
-
+vif(model.tn)
+vif(model.tp)
 ```
 
 Which variable(s) might you choose to remove from each model based on VIF values?
@@ -119,13 +123,16 @@ Which variable(s) might you choose to remove from each model based on VIF values
 To create a stepwise regression, first create a model with the revised list of predictor variables, and then use the function `step(modelname)` to calculate AIC values and choose the most parsimonous model. Do this for both models (TN and TP). 
 
 ```{r}
+step(model.tn)
+step(model.tp)
 
 ```
 
 5. Based on the AIC analysis, create two final models predicting TN and TP concentrations with the combination of predictor variables recommended by the AIC analysis. 
 
 ```{r}
-
+model.tp.final = lm(tp~state+chla+secchi, data = LAGOSquality)
+summary(model.tp.final)
 ```
 
 Interpret the effect of each variable on TN or TP (e.g., "TN increases by one unit with every z unit increase/decrease in x predictor variable")
