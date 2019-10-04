@@ -31,7 +31,7 @@ library(tseries)
 
 theme_set(theme_classic())
 
-LAGOSdata <- lagosne_load()
+load(file = "./Data/Raw/LAGOSdata.rda")
 ```
 
 ## Trend analysis
@@ -55,11 +55,11 @@ In general, detecting a monotonic trend requires a long sequence of data with fe
 
 Adjusting the data may be necessary to fulfill the assumptions of a trend test. These adjustments include **aggregation**, **subsampling**, and **interpolation**. What do each of these mean, and why might we want to use them?
 
-> aggregation: 
+> aggregation: putting daily data together into weekly, or monthly data; reducing dimension
 
-> subsampling: 
+> subsampling: e.g. you have daily data last year but only weekly data this year, use subsampling instead of aggregation for last year data, to avoid smoothing the data
 
-> interpolation: 
+> interpolation: gap filling
 
 Specific tests for monotonic trend analysis are listed below, with assumptions and tips: 
 
@@ -127,7 +127,7 @@ Common interpolation methods:
 
 * **Piecewise constant**: <fill in notes here>
 * **Linear**: <fill in notes here>
-* **Spline**: <fill in notes here>
+* **Spline**: curved version of linear, not outperform linear in hydrologic data analysis
 
 Linear interpolation is most common for water quality data, and fits with our understanding about how TP might change over time in this system. 
 ```{r}
@@ -151,14 +151,15 @@ Mendotatimeseries <- ts(linearinterpolation$TP, frequency = 12,
 Mendotatrend <- smk.test(Mendotatimeseries)
 
 # Inspect results
-Mendotatrend
+Mendotatrend ## p value > 0.05 => not reject null hypothesis; z score: both magnitude and direction of trend
+# s: total sum of differences between one point and its next point
 summary(Mendotatrend)
 
 ```
 
 What would we conclude based on these findings? Describe as you would to an educated but non-specialist audience.
 
->
+> overall it doesn't seem that there exists an obvious seasonality trend, but October and November may have some significant differences from other months.
  
 If a significant trend was present, we could compute a **Sen's Slope** to quantify that trend (`sens.slope` function in the trend package).
  
