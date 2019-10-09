@@ -17,7 +17,7 @@ editor_options:
 
 High frequency data is usually defined as frequencies significantly lower than daily (e.g. 5-minute, 15-minute, 1 hr etc). What types of hydrological and biological processes happen on this timescale that we might want to investigate?
 
->
+> flashflood, spill of contaminants, big daily changes (temperature, oxygen)
 
 
 ## Session Set Up
@@ -37,7 +37,7 @@ theme_set(theme_classic(base_size = 12))
 
 ```{r download data}
 
-dischargedatTFC2018 <- readNWISuv(
+dischargedatTFC2018 <- readNWISuv( #uv->instantaneous data
   site = "02097280", #Third Fork Creek at Woodcroft Parkway Near Blands
   parameterCd = "00060",
   startDate = "2018-01-01", 
@@ -72,7 +72,7 @@ plot_grid(
 
 The shape and size of river hydrographs following rain events can tell us how water moves through a watershed. Once rain falls, how does water get to a stream? What would the streamflow do?
 
->
+> overland flow (pipes, "normal" olf), groundwater, directly into river channel
 
 
 _"Hydrograph separation is one of the most desperate analysis techniques in use in hydrology" - Hewlett & Hibbert 1967_
@@ -114,11 +114,31 @@ Export <- TFC2018 %>%
 
 What percentage of water is exported from this watershed as baseflow? What percentage as quickflow?
 
-> 
+> baseflow: 51.9%
 
 Repeat this analysis for Ellerbe Creek. How do the percentages compare?
 
->
+```{r baseflowseparation}
+ECbaseflow <- BaseflowSeparation(
+  dischargedatEC2018$Flow_Inst, 
+  filter_parameter = 0.925, 
+  passes = 3
+  )
+
+EC2018 <- cbind(dischargedatEC2018, ECbaseflow)
+
+Export_EC <- EC2018 %>%
+  mutate(timestep = c(diff(as.numeric(dateTime)), NA_real_),
+         baseflowexport = bt * timestep,
+         quickflowexport = qft * timestep) %>%
+  summarize(BaseflowExport_cf = sum(baseflowexport, na.rm = T),
+            QuickflowExport_cf = sum(quickflowexport, na.rm = T),
+            TotalExport_cf = BaseflowExport_cf + QuickflowExport_cf)
+
+Export_EC$BaseflowExport_cf/Export_EC$TotalExport_cf
+
+```
+> Baseflow: 43.4%
 
 What does this mean physically about the watershed?
 
@@ -130,13 +150,14 @@ A "flashy" stream increases in flow faster following a precipitation event.
 
 Refering to our previous work with baseflow separation, would you expect flashiness to increase or decrease with urbanization?
 
-> 
+> increase
 
 What do you think "urban stream syndrom" refers to?
 
 >
 
 The Richards-Baker Index is an index of how flashy a stream is. It is calculated as $$RBI = (\sum_{j = 1}^n |Q_j - Q_{j-1}| / \sum_{j = 1}^n Q_j) / Catchment Area$$
+Q: flow
 
 ```{r Flashiness}
 TFCsitedata <- readNWISsite(site = "02097280")
@@ -159,7 +180,41 @@ RBI_EC2018 <- (
 
 Which stream is flashier?
 
->
+> Ellerbe Creek is flashier (it has a higher RBI)
+
+```{r}
+dischargedatIL2018 <- readNWISuv( #uv->instantaneous data
+  site = "05539900", #Third Fork Creek at Woodcroft Parkway Near Blands
+  parameterCd = "00060",
+  startDate = "2018-01-01", 
+  endDate = "2019-01-01"
+  ) %>% 
+  renameNWISColumns()
+ILbaseflow <- BaseflowSeparation(
+  dischargedatIL2018$Flow_Inst, 
+  filter_parameter = 0.925, 
+  passes = 3
+  )
+
+IL2018 <- cbind(dischargedatIL2018, ILbaseflow)
+
+```
+
+```{r}
+Export <- IL2018 %>%
+  mutate(timestep = c(diff(as.numeric(dateTime)), NA_real_),
+         baseflowexport = bt * timestep,
+         quickflowexport = qft * timestep) %>%
+  summarize(BaseflowExport_cf = sum(baseflowexport, na.rm = T),
+            QuickflowExport_cf = sum(quickflowexport, na.rm = T),
+            TotalExport_cf = BaseflowExport_cf + QuickflowExport_cf)
+Export$BaseflowExport_cf/Export$TotalExport_cf
+
+```
+
+```{r}
+
+```
 
 ## Chemical Flashiness
 
