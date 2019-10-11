@@ -1,9 +1,11 @@
 ---
-title: "Assignment 6: Time Series Analysis"
-author: "Student Name"
-output: pdf_document
+title: 'Assignment 6: Time Series Analysis'
+author: "Yutao Gong"
 geometry: margin=2.54cm
-editor_options: 
+output:
+  word_document: default
+  pdf_document: default
+editor_options:
   chunk_output_type: console
 ---
 
@@ -28,7 +30,16 @@ The completed exercise is due on 11 October 2019 at 9:00 am.
 4. Load the ClearCreekDischarge.Monthly.csv file from the processed data folder. Call this data frame ClearCreekDischarge.Monthly.
 
 ```{r setup}
+getwd()
 
+library(tidyverse)
+library(lubridate)
+library(trend)
+library(dataRetrieval)
+
+theme_set(theme_bw())
+
+ClearCreekDischarge.Monthly = read.csv("../Data/Processed/ClearCreekDischarge.Monthly.csv")
 ```
 
 ## Time Series Decomposition
@@ -38,14 +49,39 @@ The completed exercise is due on 11 October 2019 at 9:00 am.
 8. Decompose the time series using the `stl` function.
 9. Visualize the decomposed time series.
 ```{r}
+Enodata <- readNWISdv(siteNumbers = "02085070", 
+                     parameterCd = "00060", 
+                     startDate = "",
+                     endDate = "")
+names(Enodata)[4:5] <- c("Discharge", "Approval.Code")
+EnoPlot <- 
+  ggplot(Enodata, aes(x = Date, y = Discharge)) +
+         geom_line() + labs(x = "", y = expression("Discharge (ft"^3*"/s)"), title = "Eno River Discharge over Time")
+print(EnoPlot)
+
+Eno_ts <- ts(Enodata[[4]], frequency = 365)
+Eno_Decomposed <- stl(Eno_ts, s.window = "periodic")
+plot(Eno_Decomposed)
+
+```
+
+```{r, include=FALSE}
+ClearCreekDischarge <- readNWISdv(siteNumbers = "06719505",
+                     parameterCd = "00060", # discharge (ft3/s)
+                     startDate = "",
+                     endDate = "") 
+names(ClearCreekDischarge)[4:5] <- c("Discharge", "Approval.Code")
+ClearCreek_ts <- ts(ClearCreekDischarge[[4]], frequency = 365)
+ClearCreek_Decomposed <- stl(ClearCreek_ts, s.window = "periodic")
+plot(ClearCreek_Decomposed)
 
 ```
 
 10. How do the seasonal and trend components of the decomposition compare to the Clear Creek discharge dataset? Are they similar in magnitude?
 
-> Seasonal: 
+> Seasonal: The seasonal component of Eno River discharge dataset looks "denser", which implies that its discharge seasonality is not as strong as the Clear Creek. The magnitudes are different: Eno River's seasonality ranges from around -100 to 100, while Clear Creek's seasonality ranges from around 0 to 400.
 
-> Trend: 
+> Trend: The trend of Eno River discharge dataset looks comparatively more similar to that of Clear Creek, except that Eno River has more sudden peaks in later times. The magnitudes are similar.
 
 ## Trend Analysis
 Research question: Has there been a monotonic trend in discharge in Clear Creek over the period of study?
@@ -53,30 +89,34 @@ Research question: Has there been a monotonic trend in discharge in Clear Creek 
 11. Generate a time series of monthly discharge in Clear Creek from the ClearCreekDischarge.Monthly data frame. This time series should include just one column (discharge). 
 12. Run a Seasonal Mann-Kendall test on the monthly discharge data. Inspect the overall trend and the monthly trends. 
 ```{r}
-
+ClearCreek.Monthly_ts <- ts(ClearCreekDischarge.Monthly$Discharge, frequency = 12, start = c(1974, 10), end = c(2019,10))
+ClearCreektrend <- smk.test(ClearCreek.Monthly_ts)
+summary(ClearCreektrend)
+ClearCreektrend
 ```
 
 13. Is there an overall monotonic trend in discharge over time? If so, is it positive or negative?
 
-> 
+> p-value is over 0.05 so evidence is not significant enough for me to reject the null hepothesis, so there is no overall monotonic trend in discharge over time.
 
 14. Are there any monthly monotonic trends in discharge over time? If so, during which months do they occur and are they positive or negative?
 
-> 
+> Yes, they occur in March and April and they are positive
 
 ## Reflection
 15. What are 2-3 conclusions or summary points about time series you learned through your analysis?
 
->
+> 1. Time series data is very useful when it comes to analyzing seasonality
+2. There are multiple effects layered together on a time series data so it is important to decompose it
 
 16. What data, visualizations, and/or models supported your conclusions from 12?
 
-> 
+> The plot of decomposed time series data
 
 17. Did hands-on data analysis impact your learning about time series relative to a theory-based lesson? If so, how?
 
->
+> Yes, it made time series data more intuitive (by visualizing)
 
 18.	How did the real-world data compare with your expectations from theory?
 
->
+> It needs more significant evidence to determine seasonality trends in a river than I thought it would.
