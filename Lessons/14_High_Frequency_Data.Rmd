@@ -25,9 +25,6 @@ Wednesday we used high-frequency hydrographs to learn about how water flows thro
 ```{r, message = FALSE}
 getwd()
 
-# install.packages("StreamPULSE")
-# install.packages("streamMetabolizer")
-
 packages <- c(
   "dataRetrieval", 
   "tidyverse", 
@@ -41,7 +38,7 @@ invisible(
     lapply(packages, library, character.only = TRUE)
     )
   ) 
-
+library(streamMetabolizer)
 theme_set(theme_classic(base_size = 12))
 ```
 
@@ -50,6 +47,8 @@ theme_set(theme_classic(base_size = 12))
 ## Chemical Flashiness
 
 Chemical concentrations in rivers can be either highly variable with discharge, or "chemostatic", which means the concentration barely changes with discharge. 
+
+C-Q plots
 
 ```{r}
 CCdat <- readNWISuv(
@@ -86,7 +85,7 @@ ggplot(Potdat,
 
 Which of these rivers is more chemostatic?
 
->
+> Crane Creek, because there's no apparent trend you can see
 
 ## Hysteresis Loops
 
@@ -105,7 +104,7 @@ dygraph(
 
 Look at the storm that occured around February 1st. Do you expect this storm to be a flushing or a diluting storm?
 
->
+> Nitrate decreases when there's a storm
 
 ```{r}
 PotomacStorm <- Potdat %>%
@@ -119,15 +118,15 @@ ggplot(PotomacStorm, aes(x = Flow_Inst, y = Nitrate_mgl, color = dateTime)) +
 
 Did this storm exhibit clockwise or counterclockwise hysteresis?
 
->
+> counterclockwise
 
 Which direction do hysteresis loops slope for diluting storms?
 
->
+> down
 
 Which direction do hysteresis loops go for flushing storms?
 
->
+> either
 
 ## Using dissolved oxygen to estimate metabolism
 
