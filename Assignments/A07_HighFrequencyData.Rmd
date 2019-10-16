@@ -1,9 +1,11 @@
 ---
-title: "Assignment 7: High Frequency Data"
-author: "Student Name"
-output: pdf_document
+title: 'Assignment 7: High Frequency Data'
+author: "Yutao Gong"
 geometry: margin=2.54cm
-editor_options: 
+output:
+  word_document: default
+  pdf_document: default
+editor_options:
   chunk_output_type: console
 ---
 
@@ -28,7 +30,11 @@ The completed exercise is due on 16 October 2019 at 9:00 am.
 
 
 ```{r setup}
-
+getwd()
+library(streamMetabolizer)
+library(StreamPULSE)
+library(tidyverse)
+theme_set(theme_bw())
 ```
 
 
@@ -36,78 +42,130 @@ The completed exercise is due on 16 October 2019 at 9:00 am.
 
 5. Reformat the data into one dataframe with columns DateTime_UTC, DateTime_Solar (using `convert_UTC_to_solartime()`), SiteName, DO_mgL, Discharge_m3s, and Nitrate_mgL.
 ```{r Datadownload}
+KansasData <- request_data(
+  sitecode = "KS_KANSASR",
+  variables = c('Discharge_m3s','DO_mgL','Nitrate_mgL')
+  )
+Kansas.lon <- KansasData[[2]]$lon
 
+Kansas.formatted <- KansasData[[1]] %>%
+  spread(value = value, key = variable) %>%
+  mutate(DateTime_Solar = convert_UTC_to_solartime(DateTime_UTC, Kansas.lon)) %>%
+  select(DateTime_UTC, DateTime_Solar, site, Discharge_m3s,DO_mgL,Nitrate_mgL)
 
 ```
 
 6. Plot each of the 3 variables against solar time for the period of record
 
 ```{r}
+ggplot(Kansas.formatted,
+       aes(x = DateTime_Solar, y = Discharge_m3s)) +
+  labs(x = "Time", y = expression("Discharge (m"^3/"s)"), title = "Discharge change over time") +
+  geom_point()
 
+ggplot(Kansas.formatted,
+       aes(x = DateTime_Solar, y = DO_mgL)) +
+  labs(x = "Time", y = "DO (mg/L)", title = "Dissolved oxygen change over time") +
+  geom_point()
+
+ggplot(Kansas.formatted,
+       aes(x = DateTime_Solar, y = Nitrate_mgL)) +
+  labs(x = "Time", y = "Nitrate (mg/L)", title = "Nitrate change over time") +
+  geom_point()
 ```
 
 7. How will you address gaps in these dataseries?
 
->
+> I would either use linear interpolation to fill in the gaps or drop the rows with missing values (because the frequency of sampling is pretty high)
 
 8. How does the daily amplitude of oxygen concentration swings change over the season? What might cause this?
 
->
+> It increases from winter/early spring times (February) to summer times (June). In summer the temperature difference in a day may be more significant, and there would also be more precipitation, both of which lead to more significant swings of oxygen concentration in the water.
 
 ## Baseflow separation
 9. Use the `EcoHydRology::BaseflowSeparation()` function to partition discharge into baseflow and quickflow, and calculate how much water was exported as baseflow and quickflow for this time period. Use the DateTime_UTC column as your timestamps in this analysis.
 
 The `package::function()` notation being asked here is a way to call a function without loading the library. Sometimes the EcoHydRology package can mask tidyverse functions like pipes, which will cause problems for knitting. In your script, instead of just typing `BaseflowSeparation()`, you will need to include the package and two colons as well.
 
-10. Create a ggplot showing total flow, baseflow, and quickflow together. 
-
+10. Create a ggplot showing total flow, baseflow, and quickflow together.
 
 ```{r}
+Kansas.discharge <- Kansas.formatted %>%
+  select(DateTime_UTC, Discharge_m3s) %>%
+  drop_na()
+Kansasbaseflow <- EcoHydRology::BaseflowSeparation(
+  Kansas.discharge$Discharge_m3s, 
+  filter_parameter = 0.925, 
+  passes = 3
+  )
+
+KansasFlow <- cbind(Kansas.discharge, Kansasbaseflow)
+
+ggplot(KansasFlow, aes(x = DateTime_UTC, y = Discharge_m3s)) + 
+  geom_line() +
+  # scale_y_log10() +
+  geom_line(mapping = aes(x = DateTime_UTC, y = bt), color = "darkorange4") +
+  geom_line(mapping = aes(x = DateTime_UTC, y = qft), color = "steelblue4")
+
+Export <- KansasFlow %>%
+  mutate(timestep = c(diff(as.numeric(DateTime_UTC)), NA_real_),
+         baseflowexport = bt * timestep,
+         quickflowexport = qft * timestep) %>%
+  summarize(BaseflowExport_cf = sum(baseflowexport, na.rm = T),
+            QuickflowExport_cf = sum(quickflowexport, na.rm = T),
+            TotalExport_cf = BaseflowExport_cf + QuickflowExport_cf)
+Export$BaseflowExport_cf/Export$TotalExport_cf #baseflow percentage
+Export$QuickflowExport_cf/Export$TotalExport_cf #quickflow percentage
 
 ```
 
 
 11. What percentage of total water exported left as baseflow and quickflow from the Kansas River over this time period?
 
->
+> Baseflow: 95.68%, quickflow: 4.32%
 
 12. This is a much larger river and watershed than the 2 we investigated in class. How does the size of the watershed impact how flow is partitioned into quickflow and baseflow? 
 
->
+> The larger the watershed, the higher the percentage of baseflow takes up the total water flow of a river.
 
 13. The site we are looking at is also further down in its river network (i.e. instead of being a headwater stream, this river has multiple tributaries that flow into it). How does this impact your interpretation of your results?
 
->
+> It could also be: rivers more downstream in the river network will tend to have a higher percentage of flow being baseflow.
 
 ## Chemical Hysteresis
 
 14. Create a ggplot of flow vs. nitrate for the large storm in May (~May 1 - May 20). Use color to represent Date and Time.
 
 ```{r}
-
+KansasMay <- Kansas.formatted %>%
+  filter(DateTime_Solar > "2018-05-01" & DateTime_Solar < "2018-05-31") 
+ggplot(KansasMay, aes(x = Discharge_m3s, y = Nitrate_mgL, color = DateTime_UTC)) +
+    labs(x = expression("Discharge (m"^3/"s)"), y = "Nitrate (mg/L)", title = "Discharge and nitrate change over time in May") +
+  geom_point() 
 ```
 
 15. Does this storm show clockwise or counterclockwise hysteresis? Was this storm a flushing or diluting storm?
 
->
+> Counterclockwise hysteresis. The storm was a flushing storm.
 
 16. What does this mean for how nitrate gets into the river from the watershed?
 
->
+> It means that nitrate from the watershed gets into the river mainly through run-off from nearby (probably impervious) surfaces when there is a storm.
 
 ## Reflection
 17. What are 2-3 conclusions or summary points about high frequency data you learned through your analysis?
 
->
+> 1. High frequency data provides rich resource for analysis but also calls for careful data wrangling techniques.
+2. High frequency data allows for analysis on chemical hysteresis in water bodies.
 
 18. What data, visualizations, and/or models supported your conclusions from 17?
 
-> 
+> I spent a lot of time figuring out how to deal with NAs when extracting baseflows. The last graph also supports chemical hysteresis analysis.
 
 19. Did hands-on data analysis impact your learning about high frequency data relative to a theory-based lesson? If so, how?
 
->
+> Yes, it presents some challenges that I did not expect to run into.
 
 20.	How did the real-world data compare with your expectations from theory?
 
->
+> I though high frequency data would be very convenient to analyze, but it turns out I need to put extra effort into data cleaning (like missing values.)
