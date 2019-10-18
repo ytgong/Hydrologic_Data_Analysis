@@ -245,7 +245,7 @@ Secchi.Animation <- ggplot() +
   enter_appear() +
   exit_disappear() 
 
-#anim_save('Secchi.Animation.gif', animate(Secchi.Animation, height = 400, wid = 600, renderer = gifski_renderer(loop = TRUE)))
+anim_save('Secchi.Animation.gif', animate(Secchi.Animation, height = 400, wid = 600, renderer = gifski_renderer(loop = TRUE)))
 
 ```
 
