@@ -1,9 +1,11 @@
 ---
-title: "Assignment 8: Mapping"
-author: "Student Name"
-output: pdf_document
+title: 'Assignment 8: Mapping'
+author: "Yutao Gong"
 geometry: margin=2.54cm
-editor_options: 
+output:
+  pdf_document: default
+  word_document: default
+editor_options:
   chunk_output_type: console
 ---
 
@@ -28,7 +30,19 @@ The completed exercise is due on 23 October 2019 at 9:00 am.
 4. Load the lagos database, the USA rivers water features shape file, and the HUC6 watershed shape file.
 
 ```{r setup}
+getwd()
+library(tidyverse)
+library(lubridate)
+library(cowplot)
+library(LAGOSNE)
+library(sf)
+library(maps)
+library(viridis)
+theme_set(theme_bw())
 
+load(file = "../Data/Raw/LAGOSdata.rda")
+waterfeatures <- st_read("../Data/Raw/hydrogl020.dbf")
+HUC6 <- st_read("../Data/Raw/Watersheds_Spatial/WBDHU6.dbf")
 ```
 
 ## Mapping water quality in lakes
@@ -42,72 +56,130 @@ Complete the in-class exercise from lesson 15, to map average secchi depth measu
 5. Filter the states and secchi depth datasets so that they contain Maine only. For the secchi depth dataset, create a summary dataset with just the mean secchi depth. 
 
 ```{r}
+LAGOSlocus <- LAGOSdata$locus
+LAGOSstate <- LAGOSdata$state
+LAGOSnutrient <- LAGOSdata$epi_nutr
+LAGOSlimno <- LAGOSdata$lakes_limno
 
+# Create a data frame to visualize secchi depth
+LAGOScombined <- 
+  left_join(LAGOSnutrient, LAGOSlocus) %>%
+  left_join(., LAGOSlimno) %>%
+  left_join(., LAGOSstate) %>%
+  filter(!is.na(state)) %>%
+  dplyr::select(lagoslakeid, sampledate, secchi, lake_area_ha, maxdepth, nhd_lat, nhd_long, state)
+
+states <- st_as_sf(map(database = "state", plot = TRUE, fill = TRUE, col = "white"))
+
+Maine.summary <- LAGOScombined %>%
+  filter(state == "ME") %>%
+  group_by(lagoslakeid) %>%
+  summarise(secchi.mean = mean(secchi),
+            area = mean(lake_area_ha),
+            depth = mean(maxdepth),
+             lat = mean(nhd_lat), 
+            long = mean(nhd_long)) %>%
+  drop_na()
+states.Maine <- filter(states, ID %in% 
+                          c("maine"))
 ```
 
 6. Create a plot of mean secchi depth for lakes in Maine, with mean secchi depth designated as color and the lake area as the size of the dot. Remember that you are using size in the aesthetics and should remove the size = 1 from the other part of the code. Adjust the transparency of points as needed.
 
 ```{r}
-
+Maine.spatial <- st_as_sf(Maine.summary, coords = c("long", "lat"), crs = 4326)
+Maineplot <- ggplot() +
+  geom_sf(data = states.Maine, fill = "white") +
+  geom_sf(data = Maine.spatial, aes(color = secchi.mean, size = area), alpha = 0.5) +
+  scale_color_viridis_c() +
+  labs(color = "Average Secchi Depth (m) in Maine") +
+  theme(legend.position = "top")
+print(Maineplot)
 ```
 
 7. Create a second plot, but this time use maximum depth of the lake as the size of the dot. 
 
 ```{r}
-
+Maineplot2 <- ggplot() +
+  geom_sf(data = states.Maine, fill = "white") +
+  geom_sf(data = Maine.spatial, aes(color = secchi.mean, size = depth), alpha = 0.5) +
+  scale_color_viridis_c() +
+  labs(color = "Average Secchi Depth (m) in Maine") +
+  theme(legend.position = "top")
+print(Maineplot2)
 ```
 
 8. Plot these maps in the same plot with the `plot_grid` function. Don't worry about adjusting the legends (if you have extra time this would be a good bonus task).
 
 ```{r}
-
+plot_grid(Maineplot, Maineplot2)
 ```
 
 What would you change about the legend to make it a more effective visualization? 
 
-> 
+> I would use different sizes of dots as the legend for lake depth and area, next to each graph respectively. I would also latthe two graphs share y-axis since they are the same.
 
 9. What relationships do you see between secchi depth, lake area, and lake depth? Which of the two lake variables seems to be a stronger determinant of secchi depth? (make a scatterplot and run a regression to test this)
 
 *Note: consider log-transforming a predictor variable if appropriate*
 
 ```{r}
+ggplot(Maine.summary, aes(x = depth, y = secchi.mean, size = area)) +
+  geom_point() +
+  labs(x = "Lake depth", y = "Secchi depth", size = "Lake area", title = "Relationships between secchi depth, lake area, and lake depth")
+
+model1 = lm(secchi.mean ~ log(depth) + area, data = Maine.summary)
+summary(model1)
 
 ```
 
-> 
+> There is a positive relationship between log-lake depth and secchi depth, and a negative relationship between lake area and secchi depth. Lake depth seems to be a stronger determinant of secchi depth.
 
 ## Mapping water features and watershed boundaries
 
 10. Wrangle the USA rivers and HUC6 watershed boundaries dataset so that they include only the features present in Florida (FL). Adjust the coordinate reference systems if necessary to ensure they use the same projection. 
 
 ```{r}
-
+HUC6.Florida <- HUC6 %>%
+  filter(States %in% c("AL,FL", "FL", "FL,GA", "AL,FL,GA"))
 ```
 
 11. Create a map of watershed boundaries in Florida, with the layer of water features on top. Color the watersheds gray (make sure the lines separating watersheds are still visible) and color the water features by type. 
 
 ```{r}
+waterfeatures <- filter(waterfeatures, STATE == "FL")
+# Remove a couple feature types we don't care about
+waterfeatures <- filter(waterfeatures, FEATURE != "Apparent Limit" & FEATURE != "Closure Line")
+st_crs(HUC6.Florida)
+waterfeatures <- st_set_crs(waterfeatures, 4269)
 
+Waterfeaturesplot <- 
+ggplot(waterfeatures) +
+    geom_sf(data = HUC6.Florida, color = "darkgray", alpha = 0.5)+
+  geom_sf(data = waterfeatures, aes(fill = FEATURE, color = FEATURE)) +
+  scale_color_viridis_d(option = "magma", end = 0.9) +
+  scale_fill_viridis_d(option = "magma", end = 0.9)
+print(Waterfeaturesplot)
 ```
 
 12. What are the dominant water features in Florida? How does this distribution differ (or not) compared to North Carolina?
 
-> 
+> The dominant water features are streams, shoreline, and canals. There are more canals and fewer streams in Florida compared to North Carolina. Florida also has longer shoreline.
 
 ## Reflection
 13. What are 2-3 conclusions or summary points about mapping you learned through your analysis?
 
->
+> 1. Layers are very useful in terms of showing different information on one map.
+2. As long as we have longtitude and latitude data, it's easy to plot a single state.
 
 14. What data, visualizations, and/or models supported your conclusions from 13?
 
-> 
+> The water feature graph of Florida.
 
 15. Did hands-on data analysis impact your learning about mapping relative to a theory-based lesson? If so, how?
 
->
+> Yes, it makes water feature related data very straightforward and intuitive.
 
 16.	How did the real-world data compare with your expectations from theory?
 
->
+> I didn't have expectations for the data we use this time
